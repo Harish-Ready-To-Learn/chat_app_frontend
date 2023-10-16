@@ -14,6 +14,7 @@ export const CreateGroupModal = () => {
   } = useContext(GlobalContext);
 
   const handleCreateNewGroup = () => {
+    console.log("FE", currentGroupName);
     socket.emit("createNewGroup", currentGroupName);
     setCreateGroupModalVisible(false);
     setCurrentGroupName("");

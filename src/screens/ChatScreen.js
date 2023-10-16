@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { GlobalContext } from "../context";
 import { AntDesign } from "@expo/vector-icons";
 import { Pressable } from "react-native";
@@ -7,21 +7,42 @@ import { FlatList } from "react-native";
 import ChatComponent from "../components/ChatComponent";
 import { Dimensions } from "react-native";
 import CreateGroupModal from "../components/CreateGroupModal";
+import { socket } from "../../utils";
 
-export const ChatScreen = () => {
+export const ChatScreen = ({ navigation }) => {
   const {
     currentUser,
     setCurrentUser,
     allChatRooms,
+    setAllChatRooms,
     createGroupModalVisible,
     setCreateGroupModalVisible,
+    setShowLoginView,
   } = useContext(GlobalContext);
+
+  useEffect(() => {
+    socket.emit("getAllGroups");
+    socket.on("groupList", (groups) => {
+      console.log("GROUP LIST =", groups);
+      setAllChatRooms(groups);
+    });
+  }, [socket]);
+
+  const handleLogout = () => {
+    setCurrentUser("");
+    setShowLoginView(false);
+  };
+
+  useEffect(() => {
+    if (currentUser.trim() === "") navigation.navigate("HomeScreen");
+  }, [currentUser]);
+
   return (
     <View style={styles.mainWrapper}>
       <View style={styles.topContainer}>
         <View style={styles.header}>
           <Text style={styles.headerText}>{currentUser}</Text>
-          <Pressable>
+          <Pressable onPress={handleLogout}>
             <AntDesign name="logout" size={30} color={"black"} />
           </Pressable>
         </View>
@@ -31,7 +52,7 @@ export const ChatScreen = () => {
           <FlatList
             data={allChatRooms}
             renderItem={({ item }) => <ChatComponent item={item} />}
-            keyExtractor={({ item }) => item.id}
+            keyExtractor={(item) => item.id}
           />
         ) : null}
       </View>
